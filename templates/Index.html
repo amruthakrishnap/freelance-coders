@@ -1,88 +1,210 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jai HemPrakash Cheep Tapak Dum Dum</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f4;
-            color: #333;
-        }
-        header {
-            background-color: #333;
-            color: #fff;
-            padding: 10px 0;
-            text-align: center;
-        }
-        nav {
-            display: flex;
-            justify-content: center;
-            background-color: #444;
-            padding: 10px 0;
-        }
-        nav a {
-            color: #fff;
-            text-decoration: none;
-            margin: 0 15px;
-            font-weight: bold;
-        }
-        nav a:hover {
-            text-decoration: underline;
-        }
-        main {
-            padding: 20px;
-            max-width: 800px;
-            margin: 20px auto;
-            background-color: #fff;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-        footer {
-            text-align: center;
-            padding: 10px 0;
-            background-color: #333;
-            color: #fff;
-            position: fixed;
-            bottom: 0;
-            width: 100%;
-        }
-    </style>
-</head>
-<body>
+<script>
+    (function() {
+        const style = `
+            body {
+                font-family: Arial, sans-serif;
+                margin: 0;
+                padding: 0;
+                background-color: #f4f4f4;
+            }
 
-<header>
-    <h1>Jai HemPrakash</h1>
-</header>
+            .review-widget {
+                max-width: 800px;
+                margin: 20px auto;
+                padding: 20px;
+                background-color: #ffffff;
+                border-radius: 10px;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+                text-align: center;
+            }
 
-<nav>
-    <a href="#home">Home</a>
-    <a href="#about">About</a>
-    <a href="#contact">Contact</a>
-</nav>
+            .rating-summary {
+                font-size: 24px;
+                font-weight: bold;
+                color: #555;
+            }
 
-<main>
-    <section id="home">
-        <h2>Home</h2>
-        <p>This is the home section of the website. You can put some introductory content here.</p>
-    </section>
+            .carousel-container {
+                display: flex;
+                overflow-x: auto;
+                scroll-snap-type: x mandatory;
+                padding: 20px 0;
+            }
 
-    <section id="about">
-        <h2>About</h2>
-        <p>This section is about the website. Here, you can write more details about what the site is for and its purpose.</p>
-    </section>
+            .review-card {
+                flex: 0 0 auto;
+                width: 250px;
+                background-color: #ffffff;
+                border-radius: 10px;
+                margin: 0 10px;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+                padding: 15px;
+                text-align: left;
+                scroll-snap-align: start;
+                position: relative;
+            }
 
-    <section id="contact">
-        <h2>Contact</h2>
-        <p>If you'd like to get in touch, you can contact us at <a href="mailto:someone@example.com">someone@example.com</a>.</p>
-    </section>
-</main>
+            .review-user {
+                display: flex;
+                align-items: center;
+                margin-bottom: 10px;
+            }
 
-<footer>
-    <p>&copy; 2024 Simple Website. All rights reserved.</p>
-</footer>
+            .user-img {
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                margin-right: 10px;
+            }
 
-</body>
-</html>
+            .user-name {
+                font-weight: bold;
+                color: #333;
+            }
+
+            .posted-date {
+                font-size: 12px;
+                color: #777;
+            }
+
+            .star-rating {
+                color: #FFA500;
+                font-size: 18px;
+            }
+
+            .review-content {
+                margin-top: 10px;
+                color: #555;
+            }
+
+            .read-more {
+                color: #007BFF;
+                cursor: pointer;
+                font-size: 12px;
+            }
+
+            .modal {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0, 0, 0, 0.7);
+                justify-content: center;
+                align-items: center;
+            }
+
+            .modal-content {
+                background-color: #ffffff;
+                padding: 20px;
+                border-radius: 10px;
+                width: 300px;
+                text-align: left;
+                position: relative;
+            }
+
+            .close-btn {
+                position: absolute;
+                top: 10px;
+                right: 10px;
+                cursor: pointer;
+                font-size: 18px;
+                color: #333;
+            }
+        `;
+
+        const reviews = [
+            {
+                username: 'Yuliia Kosiak',
+                userImage: 'https://via.placeholder.com/40',
+                starRating: 3,
+                reviewContent: 'Красивое место. В Обсерваторию вход бесплатный, платный только...',
+                fullReview: 'Красивое место. В Обсерваторию вход бесплатный, платный только вход в обсерваторию на смотровую площадку.',
+                postedDate: '7 days ago'
+            },
+            {
+                username: 'Jesus Borrero',
+                userImage: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQeYbMZD_zkw57-D3OhC2tPG2SiCNMmQRZ7Vw&s',
+                starRating: 3.5,
+                reviewContent: 'Excellent observatory. Is kept in excellent conditions, it opened in...',
+                fullReview: 'Excellent observatory. Is kept in excellent conditions, it opened in a timely manner (exactly at the scheduled time). Beautiful views and knowledgeable staff.',
+                postedDate: '7 days ago'
+            },
+            {
+                username: 'Ross',
+                userImage: 'https://via.placeholder.com/40',
+                starRating: 5,
+                reviewContent: 'Seriously impressed. Quite a knowledgeable interactive experience...',
+                fullReview: 'Seriously impressed. Quite a knowledgeable interactive experience. Beautiful views and well-maintained exhibits.',
+                postedDate: '7 days ago'
+            }
+        ];
+
+        const styleTag = document.createElement('style');
+        styleTag.innerHTML = style;
+        document.head.appendChild(styleTag);
+
+        const reviewWidget = document.createElement('div');
+        reviewWidget.className = 'review-widget';
+        reviewWidget.innerHTML = `
+            <div class="rating-summary">
+                Google Reviews: 4.4 ★ (159)
+            </div>
+            <div class="carousel-container" id="reviewCarousel">
+                <!-- Reviews will be dynamically inserted here -->
+            </div>
+        `;
+
+        document.body.appendChild(reviewWidget);
+
+        const reviewContainer = document.getElementById('reviewCarousel');
+        const modal = document.createElement('div');
+        modal.className = 'modal';
+        modal.id = 'reviewModal';
+        modal.innerHTML = `
+            <div class="modal-content">
+                <span class="close-btn" onclick="closeModal()">×</span>
+                <div id="modalUser"></div>
+                <div id="modalPostedDate" class="posted-date"></div>
+                <div id="modalStarRating" class="star-rating"></div>
+                <div id="modalReviewContent"></div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+
+        const modalUser = document.getElementById('modalUser');
+        const modalPostedDate = document.getElementById('modalPostedDate');
+        const modalStarRating = document.getElementById('modalStarRating');
+        const modalReviewContent = document.getElementById('modalReviewContent');
+
+        reviews.forEach(review => {
+            const reviewCard = document.createElement('div');
+            reviewCard.className = 'review-card';
+            reviewCard.innerHTML = `
+                <div class="review-user">
+                    <img src="${review.userImage}" alt="${review.username}" class="user-img">
+                    <div>
+                        <div class="user-name">${review.username}</div>
+                        <div class="posted-date">${review.postedDate}</div>
+                    </div>
+                </div>
+                <div class="star-rating">${'★'.repeat(review.starRating)}</div>
+                <div class="review-content">${review.reviewContent} <span class="read-more" onclick="showModal('${review.username}', '${review.postedDate}', ${review.starRating}, '${review.fullReview}')">Read more</span></div>
+            `;
+            reviewContainer.appendChild(reviewCard);
+        });
+
+        window.showModal = function(username, postedDate, starRating, fullReview) {
+            modalUser.textContent = username;
+            modalPostedDate.textContent = postedDate;
+            modalStarRating.textContent = '★'.repeat(starRating);
+            modalReviewContent.textContent = fullReview;
+            modal.style.display = 'flex';
+        };
+
+        window.closeModal = function() {
+            modal.style.display = 'none';
+        };
+    })();
+</script>
