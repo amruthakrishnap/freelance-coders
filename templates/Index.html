@@ -1,119 +1,145 @@
-<script>
-    (function() {
-        const style = `
-            body {
-                font-family: Arial, sans-serif;
-                margin: 0;
-                padding: 0;
-                background-color: #f4f4f4;
-            }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Review Widget</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
 
-            .review-widget {
-                max-width: 800px;
-                margin: 20px auto;
-                padding: 20px;
-                background-color: #ffffff;
-                border-radius: 10px;
-                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-                text-align: center;
-            }
+        .review-widget {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
 
-            .rating-summary {
-                font-size: 24px;
-                font-weight: bold;
-                color: #555;
-            }
+        .rating-summary {
+            font-size: 24px;
+            font-weight: bold;
+            color: #555;
+        }
 
-            .carousel-container {
-                display: flex;
-                overflow-x: auto;
-                scroll-snap-type: x mandatory;
-                padding: 20px 0;
-            }
+        .carousel-container {
+            display: flex;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            padding: 20px 0;
+        }
 
-            .review-card {
-                flex: 0 0 auto;
-                width: 250px;
-                background-color: #ffffff;
-                border-radius: 10px;
-                margin: 0 10px;
-                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-                padding: 15px;
-                text-align: left;
-                scroll-snap-align: start;
-                position: relative;
-            }
+        .review-card {
+            flex: 0 0 auto;
+            width: 250px;
+            background-color: #ffffff;
+            border-radius: 10px;
+            margin: 0 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 15px;
+            text-align: left;
+            scroll-snap-align: start;
+            position: relative;
+        }
 
-            .review-user {
-                display: flex;
-                align-items: center;
-                margin-bottom: 10px;
-            }
+        .review-user {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
 
-            .user-img {
-                width: 40px;
-                height: 40px;
-                border-radius: 50%;
-                margin-right: 10px;
-            }
+        .user-img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
 
-            .user-name {
-                font-weight: bold;
-                color: #333;
-            }
+        .user-name {
+            font-weight: bold;
+            color: #333;
+        }
 
-            .posted-date {
-                font-size: 12px;
-                color: #777;
-            }
+        .posted-date {
+            font-size: 12px;
+            color: #777;
+        }
 
-            .star-rating {
-                color: #FFA500;
-                font-size: 18px;
-            }
+        .star-rating {
+            color: #FFA500;
+            font-size: 18px;
+        }
 
-            .review-content {
-                margin-top: 10px;
-                color: #555;
-            }
+        .review-content {
+            margin-top: 10px;
+            color: #555;
+        }
 
-            .read-more {
-                color: #007BFF;
-                cursor: pointer;
-                font-size: 12px;
-            }
+        .read-more {
+            color: #007BFF;
+            cursor: pointer;
+            font-size: 12px;
+        }
 
-            .modal {
-                display: none;
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background-color: rgba(0, 0, 0, 0.7);
-                justify-content: center;
-                align-items: center;
-            }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            justify-content: center;
+            align-items: center;
+        }
 
-            .modal-content {
-                background-color: #ffffff;
-                padding: 20px;
-                border-radius: 10px;
-                width: 300px;
-                text-align: left;
-                position: relative;
-            }
+        .modal-content {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 10px;
+            width: 300px;
+            text-align: left;
+            position: relative;
+        }
 
-            .close-btn {
-                position: absolute;
-                top: 10px;
-                right: 10px;
-                cursor: pointer;
-                font-size: 18px;
-                color: #333;
-            }
-        `;
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            cursor: pointer;
+            font-size: 18px;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="review-widget">
+        <div class="rating-summary">
+            Google Reviews: 4.4 ★ (159)
+        </div>
+        <div class="carousel-container" id="reviewCarousel">
+            <!-- Reviews will be dynamically inserted here -->
+        </div>
+    </div>
 
+    <!-- Modal -->
+    <div class="modal" id="reviewModal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal()">×</span>
+            <div id="modalUser"></div>
+            <div id="modalPostedDate" class="posted-date"></div>
+            <div id="modalStarRating" class="star-rating"></div>
+            <div id="modalReviewContent"></div>
+        </div>
+    </div>
+    
+    <script>
         const reviews = [
             {
                 username: 'Yuliia Kosiak',
@@ -141,38 +167,8 @@
             }
         ];
 
-        const styleTag = document.createElement('style');
-        styleTag.innerHTML = style;
-        document.head.appendChild(styleTag);
-
-        const reviewWidget = document.createElement('div');
-        reviewWidget.className = 'review-widget';
-        reviewWidget.innerHTML = `
-            <div class="rating-summary">
-                Google Reviews: 4.4 ★ (159)
-            </div>
-            <div class="carousel-container" id="reviewCarousel">
-                <!-- Reviews will be dynamically inserted here -->
-            </div>
-        `;
-
-        document.body.appendChild(reviewWidget);
-
         const reviewContainer = document.getElementById('reviewCarousel');
-        const modal = document.createElement('div');
-        modal.className = 'modal';
-        modal.id = 'reviewModal';
-        modal.innerHTML = `
-            <div class="modal-content">
-                <span class="close-btn" onclick="closeModal()">×</span>
-                <div id="modalUser"></div>
-                <div id="modalPostedDate" class="posted-date"></div>
-                <div id="modalStarRating" class="star-rating"></div>
-                <div id="modalReviewContent"></div>
-            </div>
-        `;
-        document.body.appendChild(modal);
-
+        const modal = document.getElementById('reviewModal');
         const modalUser = document.getElementById('modalUser');
         const modalPostedDate = document.getElementById('modalPostedDate');
         const modalStarRating = document.getElementById('modalStarRating');
@@ -195,16 +191,17 @@
             reviewContainer.appendChild(reviewCard);
         });
 
-        window.showModal = function(username, postedDate, starRating, fullReview) {
+        function showModal(username, postedDate, starRating, fullReview) {
             modalUser.textContent = username;
             modalPostedDate.textContent = postedDate;
             modalStarRating.textContent = '★'.repeat(starRating);
             modalReviewContent.textContent = fullReview;
             modal.style.display = 'flex';
-        };
+        }
 
-        window.closeModal = function() {
+        function closeModal() {
             modal.style.display = 'none';
-        };
-    })();
-</script>
+        }
+    </script>
+</body>
+</html>
