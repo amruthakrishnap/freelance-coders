@@ -16,5 +16,4 @@ def embed_code():
     
     return jsonify({'embed_code': embed_code})
 
-if __name__ == '__main__':
-    app.run(debug=True)
+
