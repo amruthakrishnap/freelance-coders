@@ -4,7 +4,7 @@ from apify_client import ApifyClient
 app = Flask(__name__)
 
 # Initialize the ApifyClient with your API token
-client = ApifyClient("<YOUR_API_TOKEN>")
+client = ApifyClient("apify_api_zbyqu2dzD94VC6iwhDzZ4uuPmKtM3t25AjRP")
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
