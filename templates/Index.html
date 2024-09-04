@@ -3,205 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Review Widget</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f4;
-        }
-
-        .review-widget {
-            max-width: 800px;
-            margin: 20px auto;
-            padding: 20px;
-            background-color: #ffffff;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            text-align: center;
-        }
-
-        .rating-summary {
-            font-size: 24px;
-            font-weight: bold;
-            color: #555;
-        }
-
-        .carousel-container {
-            display: flex;
-            overflow-x: auto;
-            scroll-snap-type: x mandatory;
-            padding: 20px 0;
-        }
-
-        .review-card {
-            flex: 0 0 auto;
-            width: 250px;
-            background-color: #ffffff;
-            border-radius: 10px;
-            margin: 0 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            padding: 15px;
-            text-align: left;
-            scroll-snap-align: start;
-            position: relative;
-        }
-
-        .review-user {
-            display: flex;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-
-        .user-img {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            margin-right: 10px;
-        }
-
-        .user-name {
-            font-weight: bold;
-            color: #333;
-        }
-
-        .posted-date {
-            font-size: 12px;
-            color: #777;
-        }
-
-        .star-rating {
-            color: #FFA500;
-            font-size: 18px;
-        }
-
-        .review-content {
-            margin-top: 10px;
-            color: #555;
-        }
-
-        .read-more {
-            color: #007BFF;
-            cursor: pointer;
-            font-size: 12px;
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.7);
-            justify-content: center;
-            align-items: center;
-        }
-
-        .modal-content {
-            background-color: #ffffff;
-            padding: 20px;
-            border-radius: 10px;
-            width: 300px;
-            text-align: left;
-            position: relative;
-        }
-
-        .close-btn {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            cursor: pointer;
-            font-size: 18px;
-            color: #333;
-        }
-    </style>
+    <title>Google Chrome Extension Review Widget</title>
 </head>
 <body>
-    <div class="review-widget">
-        <div class="rating-summary">
-            Google Reviews: 4.4 ★ (159)
-        </div>
-        <div class="carousel-container" id="reviewCarousel">
-            <!-- Reviews will be dynamically inserted here -->
-        </div>
-    </div>
-
-    <!-- Modal -->
-    <div class="modal" id="reviewModal">
-        <div class="modal-content">
-            <span class="close-btn" onclick="closeModal()">×</span>
-            <div id="modalUser"></div>
-            <div id="modalPostedDate" class="posted-date"></div>
-            <div id="modalStarRating" class="star-rating"></div>
-            <div id="modalReviewContent"></div>
-        </div>
-    </div>
+    <h1>Google Chrome Extension Review Widget</h1>
+    <form method="POST">
+        <label for="extension_url">Enter Extension URL:</label>
+        <input type="text" id="extension_url" name="extension_url" required>
+        <button type="submit">Submit</button>
+    </form>
     
-    <script>
-        const reviews = [
-            {
-                username: 'Hem Prakash',
-                userImage: 'https://scontent.fixe3-1.fna.fbcdn.net/v/t39.30808-1/338861371_629904065669857_1732801937804711901_n.jpg?stp=dst-jpg_s480x480&_nc_cat=105&ccb=1-7&_nc_sid=0ecb9b&_nc_ohc=maFL2m_jBuEQ7kNvgEzdmf7&_nc_ht=scontent.fixe3-1.fna&oh=00_AYCscltfWh9K-fs_RfdaA8RvwC2Vy5NtAn3w8y05HR8w6A&oe=66DD0F80',
-                starRating: 5,
-                reviewContent: 'Красивое место. В Обсерваторию вход бесплатный, платный только...',
-                fullReview: 'Experienced Professional Freelance Webdeveloper with 10+ star Rating from TCs and 5 Star Rating from Goole',
-                postedDate: '27 days ago'
-            },
-            {
-                username: 'Sanjay K H',
-                userImage: 'https://scontent.fixe3-1.fna.fbcdn.net/v/t39.30808-1/350630099_693247109235129_7592326434143187114_n.jpg?stp=dst-jpg_s480x480&_nc_cat=102&ccb=1-7&_nc_sid=0ecb9b&_nc_ohc=CNBRFL4Lqq0Q7kNvgFC0_Jt&_nc_ht=scontent.fixe3-1.fna&oh=00_AYBd_-JncpLTKXTpUymxCsORrs0skpTRA8wV7IoIHDDFdw&oe=66DD0C30',
-                starRating: 4,
-                reviewContent: 'Python Developer⚡| Web Scraping🧲 Specialist',
-                fullReview: 'Excellent observatory. Is kept in excellent conditions, it opened in a timely manner (exactly at the scheduled time). Beautiful views and knowledgeable staff.',
-                postedDate: '7 days ago'
-            },
-            {
-                username: 'Amruthkrishna',
-                userImage: 'https://instagram.fixe3-1.fna.fbcdn.net/v/t51.2885-19/434303889_3840214336206169_6911981648298802795_n.jpg?_nc_ht=instagram.fixe3-1.fna.fbcdn.net&_nc_cat=101&_nc_ohc=RtWUhVmHbWgQ7kNvgHtuOO5&edm=AEhyXUkBAAAA&ccb=7-5&oh=00_AYD7gMLJsKjjuTbD0-QAQxnTVFJASP86NmHIh3rmrScsIw&oe=66DD19D3&_nc_sid=8f1549',
-                starRating: 5,
-                reviewContent: 'Seriously impressed. Quite a knowledgeable interactive experience...',
-                fullReview: 'AmruthKrishna is considered one of the top universities in the world for cybersecurity. USNews.com ranks Carnegie Mellon University as the number one university for cybersecurity and tied for number two for computer science. ',
-                postedDate: '17 days ago'
-            }
-        ];
-
-        const reviewContainer = document.getElementById('reviewCarousel');
-        const modal = document.getElementById('reviewModal');
-        const modalUser = document.getElementById('modalUser');
-        const modalPostedDate = document.getElementById('modalPostedDate');
-        const modalStarRating = document.getElementById('modalStarRating');
-        const modalReviewContent = document.getElementById('modalReviewContent');
-
-        reviews.forEach(review => {
-            const reviewCard = document.createElement('div');
-            reviewCard.className = 'review-card';
-            reviewCard.innerHTML = `
-                <div class="review-user">
-                    <img src="${review.userImage}" alt="${review.username}" class="user-img">
-                    <div>
-                        <div class="user-name">${review.username}</div>
-                        <div class="posted-date">${review.postedDate}</div>
-                    </div>
-                </div>
-                <div class="star-rating">${'★'.repeat(review.starRating)}</div>
-                <div class="review-content">${review.reviewContent} <span class="read-more" onclick="showModal('${review.username}', '${review.postedDate}', ${review.starRating}, '${review.fullReview}')">Read more</span></div>
-            `;
-            reviewContainer.appendChild(reviewCard);
-        });
-
-        function showModal(username, postedDate, starRating, fullReview) {
-            modalUser.textContent = username;
-            modalPostedDate.textContent = postedDate;
-            modalStarRating.textContent = '★'.repeat(starRating);
-            modalReviewContent.textContent = fullReview;
-            modal.style.display = 'flex';
-        }
-
-        function closeModal() {
-            modal.style.display = 'none';
-        }
-    </script>
+    {% if results %}
+        <h2>Results:</h2>
+        <ul>
+            {% for item in results %}
+                <li>{{ item }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
 </body>
 </html>
