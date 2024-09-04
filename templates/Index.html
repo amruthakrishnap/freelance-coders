@@ -3,23 +3,280 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Google Chrome Extension Review Widget</title>
+    <title>Review Widget</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+
+        .review-widget {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .rating-summary {
+            font-size: 24px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        .carousel-container {
+            display: flex;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            padding: 20px 0;
+        }
+
+        .review-card {
+            flex: 0 0 auto;
+            width: 250px;
+            background-color: #ffffff;
+            border-radius: 10px;
+            margin: 0 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 15px;
+            text-align: left;
+            scroll-snap-align: start;
+            position: relative;
+        }
+
+        .review-user {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .user-img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        .user-name {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .posted-date {
+            font-size: 12px;
+            color: #777;
+        }
+
+        .star-rating {
+            color: #FFA500;
+            font-size: 18px;
+        }
+
+        .review-content {
+            margin-top: 10px;
+            color: #555;
+        }
+
+        .read-more {
+            color: #007BFF;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 10px;
+            width: 300px;
+            text-align: left;
+            position: relative;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            cursor: pointer;
+            font-size: 18px;
+            color: #333;
+        }
+
+        .input-container {
+            margin-bottom: 20px;
+        }
+
+        .input-container input {
+            padding: 10px;
+            width: 80%;
+            max-width: 400px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .input-container button {
+            padding: 10px 20px;
+            background-color: #007BFF;
+            color: #ffffff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+    </style>
 </head>
 <body>
-    <h1>Google Chrome Extension Review Widget</h1>
-    <form method="POST">
-        <label for="extension_url">Enter Extension URL:</label>
-        <input type="text" id="extension_url" name="extension_url" required>
-        <button type="submit">Submit</button>
-    </form>
+    <div class="review-widget">
+        <div class="input-container">
+            <input type="text" id="extensionUrl" placeholder="Enter extension URL">
+            <button onclick="fetchReviews()">Fetch Reviews</button>
+        </div>
+        <div class="rating-summary">
+            Google Reviews: <span id="ratingSummary">4.4 ★ (159)</span>
+        </div>
+        <div class="carousel-container" id="reviewCarousel">
+            <!-- Reviews will be dynamically inserted here -->
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal" id="reviewModal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal()">×</span>
+            <div id="modalUser"></div>
+            <div id="modalPostedDate" class="posted-date"></div>
+            <div id="modalStarRating" class="star-rating"></div>
+            <div id="modalReviewContent"></div>
+        </div>
+    </div>
     
-    {% if results %}
-        <h2>Results:</h2>
-        <ul>
-            {% for item in results %}
-                <li>{{ item }}</li>
-            {% endfor %}
-        </ul>
-    {% endif %}
+    <!-- Import Supabase client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@1.28.5/dist/umd/supabase.min.js"></script>
+    <script>
+        const { createClient } = window.supabase;
+        const SUPABASE_URL = 'https://vjgxtqqrbehmoqsgorvq.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZqZ3h0cXFyYmVobW9xc2dvcnZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjI4NTI5ODcsImV4cCI6MjAzODQyODk4N30.Qlhws14rMtrM7frgxLKgM6flg3I1JvJ-JPd5gd6A3-Q'; // Replace with your actual Supabase key
+        const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        async function fetchReviews() {
+            try {
+                const extensionUrl = document.getElementById('extensionUrl').value;
+
+                // Fetch extension name based on the extension URL
+                console.log('Fetching extension name from Supabase...');
+                const { data: info, error: infoError } = await supabase
+                    .from('extension_info')
+                    .select('extension_name')
+                    .eq('extension_url', extensionUrl)
+                    .single();
+
+                if (infoError) {
+                    console.error('Error fetching extension name:', infoError.message);
+                    return;
+                }
+
+                const extensionName = info.extension_name;
+
+                console.log('Extension name fetched:', extensionName);
+
+                // Fetch reviews based on extension name
+                console.log('Fetching reviews from Supabase...');
+                const { data: reviews, error: reviewsError } = await supabase
+                    .from('extension_review')
+                    .select('*')
+                    .eq('extension_name', extensionName);
+
+                if (reviewsError) {
+                    console.error('Error fetching reviews:', reviewsError.message);
+                    return;
+                }
+
+                console.log('Reviews data fetched:', reviews);
+                renderReviews(reviews);
+
+                // Fetch rating summary
+                const { data: ratingInfo, error: ratingInfoError } = await supabase
+                    .from('extension_info')
+                    .select('overall_rating, total_rating')
+                    .eq('extension_name', extensionName)
+                    .single();
+
+                if (ratingInfoError) {
+                    console.error('Error fetching rating info:', ratingInfoError.message);
+                    return;
+                }
+
+                console.log('Rating info fetched:', ratingInfo);
+                updateRatingSummary(ratingInfo.overall_rating, ratingInfo.total_rating);
+            } catch (err) {
+                console.error('Error in fetchReviews:', err);
+            }
+        }
+
+        function renderReviews(reviews) {
+            const reviewContainer = document.getElementById('reviewCarousel');
+            console.log('Rendering reviews...');
+            reviewContainer.innerHTML = ''; // Clear existing reviews
+            reviews.forEach(review => {
+                console.log('Review:', review);
+                const reviewCard = document.createElement('div');
+                reviewCard.className = 'review-card';
+                const daysAgo = Math.ceil((new Date() - new Date(review.date)) / (1000 * 60 * 60 * 24));
+
+                reviewCard.innerHTML = `
+                    <div class="review-user">
+                        <img src="https://via.placeholder.com/40" alt="${review.name}" class="user-img">
+                        <div>
+                            <div class="user-name">${review.name}</div>
+                            <div class="posted-date">${daysAgo} days ago</div>
+                        </div>
+                    </div>
+                    <div class="star-rating">${'★'.repeat(Math.round(review.rating))}</div>
+                    <div class="review-content">${review.review} <span class="read-more" onclick="showModal('${review.name}', '${daysAgo} days ago', ${review.rating}, '${review.review}')">Read more</span></div>
+                `;
+                reviewContainer.appendChild(reviewCard);
+            });
+        }
+
+        function showModal(username, postedDate, starRating, fullReview) {
+            console.log('Showing modal for:', username);
+            const modal = document.getElementById('reviewModal');
+            const modalUser = document.getElementById('modalUser');
+            const modalPostedDate = document.getElementById('modalPostedDate');
+            const modalStarRating = document.getElementById('modalStarRating');
+            const modalReviewContent = document.getElementById('modalReviewContent');
+
+            modalUser.textContent = username;
+            modalPostedDate.textContent = postedDate;
+            modalStarRating.textContent = '★'.repeat(Math.round(starRating));
+            modalReviewContent.textContent = fullReview;
+            modal.style.display = 'flex';
+        }
+
+        function closeModal() {
+            console.log('Closing modal');
+            document.getElementById('reviewModal').style.display = 'none';
+        }
+
+        function updateRatingSummary(overallRating, totalRating) {
+            const ratingSummary = document.getElementById('ratingSummary');
+            ratingSummary.textContent = `${overallRating} ★ (${totalRating})`;
+        }
+    </script>
 </body>
 </html>
