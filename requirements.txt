@@ -5,3 +5,4 @@ Flask-SQLAlchemy==3.0.4
 Flask-Migrate==4.0.4
 Flask-RESTful==0.3.9
 Flask-JWT-Extended==4.4.4
+apify-client
