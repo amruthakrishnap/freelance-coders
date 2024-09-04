@@ -5,7 +5,10 @@ app = Flask(__name__)
 
 # Initialize the ApifyClient with your API token
 client = ApifyClient("apify_api_zbyqu2dzD94VC6iwhDzZ4uuPmKtM3t25AjRP")
-
+@app.route('/debug')
+def debug():
+    import os
+    return str(os.listdir('templates'))
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == 'POST':
