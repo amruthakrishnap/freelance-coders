@@ -63,45 +63,52 @@ def hello_world():
 
 @app.route('/scrape', methods=['POST'])
 def scrape():
-    data = request.get_json()
-    url = data.get('url')
-
-    if not url:
-        return jsonify({"error": "URL is required"}), 400
-
     try:
-        res = requests.get(url, headers={'User-Agent': random.choice(user_agent_list)})
+        # Ensure that the request contains JSON data
+        if request.content_type != 'application/json':
+            return jsonify({"error": "Content-Type must be application/json"}), 415
+        
+        data = request.get_json()
+        url = data.get('url')
+        
+        if not url:
+            return jsonify({"error": "URL is required"}), 400
 
-        if res.status_code == 200:
-            soup = BeautifulSoup(res.content, 'html.parser')
-            a = soup.find('article', class_='rich-text').find_all('ul')
-            links_1 = [li.find('a').get('href') for ul in a for li in ul.find_all('li') if 'https' in li.find('a').get('href')]
+        try:
+            res = requests.get(url, headers={'User-Agent': random.choice(user_agent_list)})
 
-            if links_1:
-                all_dicts = []
+            if res.status_code == 200:
+                soup = BeautifulSoup(res.content, 'html.parser')
+                a = soup.find('article', class_='rich-text').find_all('ul')
+                links_1 = [li.find('a').get('href') for ul in a for li in ul.find_all('li') if 'https' in li.find('a').get('href')]
 
-                for link in links_1[:2]:
-                    try:
-                        res1 = requests.get(link, headers={'User-Agent': random.choice(user_agent_list)})
+                if links_1:
+                    all_dicts = []
 
-                        if res1.status_code == 200:
-                            soup1 = BeautifulSoup(res1.content, 'html.parser')
-                            z = get_dict(soup1)
-                            z['url'] = link
-                            z['update information'] = None
-                            z['scraped time'] = datetime.now().strftime('%Y-%m-%d %H_%M_%S')
-                            all_dicts.append(z)
-                    except requests.RequestException as e:
-                        print(f'Request exception for URL {link}: {e}')
-                dict2 = {'main url': url, 'main data': all_dicts}
-                return jsonify(dict2), 200
+                    for link in links_1[:2]:
+                        try:
+                            res1 = requests.get(link, headers={'User-Agent': random.choice(user_agent_list)})
+
+                            if res1.status_code == 200:
+                                soup1 = BeautifulSoup(res1.content, 'html.parser')
+                                z = get_dict(soup1)
+                                z['url'] = link
+                                z['update information'] = None
+                                z['scraped time'] = datetime.now().strftime('%Y-%m-%d %H_%M_%S')
+                                all_dicts.append(z)
+                        except requests.RequestException as e:
+                            print(f'Request exception for URL {link}: {e}')
+                    dict2 = {'main url': url, 'main data': all_dicts}
+                    return jsonify(dict2), 200
+                else:
+                    return jsonify({"error": "No inner links found"}), 400
             else:
-                return jsonify({"error": "No inner links found"}), 400
-        else:
-            return jsonify({"error": f"Error while sending request: {res.status_code}"}), 500
-    except requests.RequestException as e:
+                return jsonify({"error": f"Error while sending request: {res.status_code}"}), 500
+        except requests.RequestException as e:
+            return jsonify({"error": str(e)}), 500
+
+    except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# Ensure that the Flask app is callable in Vercel
 if __name__ == '__main__':
     app.run(debug=True)
