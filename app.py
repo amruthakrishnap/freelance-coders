@@ -153,9 +153,10 @@ def home():
 @app.route('/scrape', methods=['POST'])
 def scrape():
     username = request.form['username']
+    print(username)
     start_date = request.form['start_date']
     end_date = request.form['end_date']
-
+    print(end_date)
     extracted_data = []
     rest_id = None  # Initialize rest_id
     cursor = None
@@ -163,7 +164,7 @@ def scrape():
     # Fetch initial user data to get rest_id
     user_url = f'https://x.com/i/api/graphql/ZVunMCqu13VYcSH5_n3aTA/UserByScreenName?variables={{"screen_name":"{username}"}}'
     user_response = requests.get(user_url, cookies=cookies, headers=headers)
-
+    print(user_response)
     if user_response.status_code == 200:
         user_data = user_response.json()
         rest_id = user_data['data']['user']['result']['rest_id']
