@@ -172,6 +172,7 @@ def index():
     return render_template('index.html')
 
 
+
 @app.route('/scrape', methods=['POST'])
 def scrape():
     data = request.get_json()  # Get the JSON data from the frontend
@@ -181,6 +182,10 @@ def scrape():
     # Logic to extract tweets
     match = re.search(r'https?://x\.com/([^/]+)', url)
     username = match.group(1) if match else None
+
+    # Check if username was successfully extracted
+    if username is None:
+        return jsonify({'error': 'Invalid URL. Username could not be extracted.'}), 400
 
     params = {
         'variables': '{"screen_name":"' + username + '"}',
@@ -193,8 +198,17 @@ def scrape():
         headers=headers,
     )
 
+    # Check if response was successful
+    if response_profile.status_code != 200:
+        return jsonify({'error': 'Failed to fetch profile data.'}), 500
+
     data = response_profile.json()
-    rest_id = data['data']['user_result_by_screen_name']['result']['rest_id']
+    # Check for the expected structure in the response
+    try:
+        rest_id = data['data']['user_result_by_screen_name']['result']['rest_id']
+    except KeyError:
+        return jsonify({'error': 'User data not found in response.'}), 404
+
     all_extracted_data = []
     cursor = None
 
@@ -210,10 +224,7 @@ def scrape():
 
         all_extracted_data.extend(extracted_data)
 
-    return jsonify(all_extracted_data)   # Add new tweets to the list
-
     return jsonify(all_extracted_data)  # Send the tweet data back as JSON
-
 
 
 @app.route('/download-csv', methods=['POST'])
