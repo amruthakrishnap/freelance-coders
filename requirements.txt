@@ -1,6 +1,7 @@
+setuptools>=65.0.0
+wheel
 Flask==2.3.2
 requests==2.31.0
 pytz==2023.3
 asyncio==3.4.3
-numpy==1.23.5 
-pandas==1.5.3
+numpy==1.23.5
