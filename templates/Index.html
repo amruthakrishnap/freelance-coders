@@ -3,280 +3,305 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Review Widget</title>
+    <title>Twitter Scraper</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css">
     <style>
+        /* Custom Styles */
         body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f4;
+            background-color: #e7f3ff; /* Light blue background */
+            font-family: 'Arial', sans-serif;
         }
 
-        .review-widget {
-            max-width: 800px;
-            margin: 20px auto;
+        h1 {
+            margin-bottom: 40px;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #343a40;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 50px auto;
             padding: 20px;
-            background-color: #ffffff;
+            background-color: white;
+            box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
             border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            text-align: center;
         }
 
-        .rating-summary {
-            font-size: 24px;
-            font-weight: bold;
-            color: #555;
+        .form-label {
+            font-weight: 500;
         }
 
-        .carousel-container {
-            display: flex;
-            overflow-x: auto;
-            scroll-snap-type: x mandatory;
-            padding: 20px 0;
+        .btn-primary {
+            background-color: #0069d9;
+            border-color: #0069d9;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 5px;
+            transition: background-color 0.2s ease-in-out;
         }
 
-        .review-card {
-            flex: 0 0 auto;
-            width: 250px;
-            background-color: #ffffff;
-            border-radius: 10px;
-            margin: 0 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            padding: 15px;
-            text-align: left;
-            scroll-snap-align: start;
-            position: relative;
+        .btn-primary:hover {
+            background-color: #0056b3;
         }
 
-        .review-user {
-            display: flex;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-
-        .user-img {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            margin-right: 10px;
-        }
-
-        .user-name {
-            font-weight: bold;
-            color: #333;
-        }
-
-        .posted-date {
-            font-size: 12px;
-            color: #777;
-        }
-
-        .star-rating {
-            color: #FFA500;
-            font-size: 18px;
-        }
-
-        .review-content {
-            margin-top: 10px;
-            color: #555;
-        }
-
-        .read-more {
-            color: #007BFF;
-            cursor: pointer;
-            font-size: 12px;
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.7);
-            justify-content: center;
-            align-items: center;
-        }
-
-        .modal-content {
-            background-color: #ffffff;
-            padding: 20px;
-            border-radius: 10px;
-            width: 300px;
-            text-align: left;
-            position: relative;
-        }
-
-        .close-btn {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            cursor: pointer;
-            font-size: 18px;
-            color: #333;
-        }
-
-        .input-container {
+        .table-container {
+            max-height: 400px; /* Set a maximum height for the table */
+            overflow-y: auto; /* Enable vertical scrolling */
+            margin-top: 30px;
             margin-bottom: 20px;
         }
 
-        .input-container input {
-            padding: 10px;
-            width: 80%;
-            max-width: 400px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
+        .table {
+            font-size: 0.9rem;
         }
 
-        .input-container button {
-            padding: 10px 20px;
-            background-color: #007BFF;
-            color: #ffffff;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
+        .table th, .table td {
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        .table-hover tbody tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        #results {
+            display: none;
+        }
+
+        .btn-success {
+            margin-top: 20px;
+            background-color: #28a745;
+            border-color: #28a745;
             font-size: 16px;
+            padding: 10px 20px;
+            border-radius: 5px;
+            transition: background-color 0.2s ease-in-out;
+        }
+
+        .btn-success:hover {
+            background-color: #218838;
+        }
+
+        /* Spinner */
+        .loading-spinner {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .spinner-border {
+            width: 3rem;
+            height: 3rem;
+        }
+
+        footer {
+            text-align: center;
+            color: #6c757d; /* Transplant color */
+            margin-top: 20px;
         }
     </style>
 </head>
 <body>
-    <div class="review-widget">
-        <div class="input-container">
-            <input type="text" id="extensionUrl" placeholder="Enter extension URL">
-            <button onclick="fetchReviews()">Fetch Reviews</button>
+    <div class="container mt-5">
+        <h1 class="text-center">Twitter Scraper</h1>
+        <form id="scrapeForm">
+            <div class="mb-3">
+                <label for="url" class="form-label">Twitter URL</label>
+                <input type="text" class="form-control" id="url" placeholder="Enter Twitter profile URL" required>
+            </div>
+            <div class="mb-3">
+                <label for="end_date" class="form-label">End Date</label>
+                <input type="date" class="form-control" id="end_date" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Search</button>
+        </form>
+
+        <!-- Loading Spinner -->
+        <div class="loading-spinner text-center mt-3">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
         </div>
-        <div class="rating-summary">
-            Google Reviews: <span id="ratingSummary">4.4 ★ (159)</span>
+
+        <div class="mt-5" id="results">
+            <h2>Results</h2>
+            <!-- Filter Dropdown -->
+            <div class="mb-3">
+                <label for="filter" class="form-label">Filter Tweets</label>
+                <select class="form-select" id="filter">
+                    <option value="all">All Tweets</option>
+                    <option value="user_posts">User Posts</option>
+                    <option value="retweets">Re-Tweets</option>
+                </select>
+            </div>
+            <div class="table-container">
+                <table class="table table-hover table-bordered" id="resultsTable">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>#</th>
+                            <th>Created At (IST)</th>
+                            <th>Tweet URL</th>
+                            <th>Full Text</th>
+                            <th>Views</th>
+                            <th>Quote Count</th>
+                            <th>Reply Count</th>
+                            <th>Retweet Count</th>
+                            <th>Favorite Count</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div class="pagination-container text-center">
+                <button id="prevPage" class="btn btn-secondary" disabled>Previous</button>
+                <button id="nextPage" class="btn btn-secondary" disabled>Next</button>
+            </div>
+            <button id="downloadCSV" class="btn btn-success">Download CSV</button>
         </div>
-        <div class="carousel-container" id="reviewCarousel">
-            <!-- Reviews will be dynamically inserted here -->
-        </div>
+
+        <footer>
+            <p>Developed By Team Adithya Varahe</p>
+        </footer>
     </div>
 
-    <!-- Modal -->
-    <div class="modal" id="reviewModal">
-        <div class="modal-content">
-            <span class="close-btn" onclick="closeModal()">×</span>
-            <div id="modalUser"></div>
-            <div id="modalPostedDate" class="posted-date"></div>
-            <div id="modalStarRating" class="star-rating"></div>
-            <div id="modalReviewContent"></div>
-        </div>
-    </div>
-    
-    <!-- Import Supabase client -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@1.28.5/dist/umd/supabase.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
-        const { createClient } = window.supabase;
-        const SUPABASE_URL = 'https://vjgxtqqrbehmoqsgorvq.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZqZ3h0cXFyYmVobW9xc2dvcnZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjI4NTI5ODcsImV4cCI6MjAzODQyODk4N30.Qlhws14rMtrM7frgxLKgM6flg3I1JvJ-JPd5gd6A3-Q'; // Replace with your actual Supabase key
-        const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+        $(document).ready(function() {
+            $('#results').hide();  // Initially hide the results section
 
-        async function fetchReviews() {
-            try {
-                const extensionUrl = document.getElementById('extensionUrl').value;
+            let currentPage = 0;
+            const itemsPerPage = 20;
+            let allTweets = [];
 
-                // Fetch extension name based on the extension URL
-                console.log('Fetching extension name from Supabase...');
-                const { data: info, error: infoError } = await supabase
-                    .from('extension_info')
-                    .select('extension_name')
-                    .eq('extension_url', extensionUrl)
-                    .single();
+            $('#scrapeForm').submit(function(event) {
+                event.preventDefault();
+                const url = $('#url').val();
+                const endDate = $('#end_date').val();
 
-                if (infoError) {
-                    console.error('Error fetching extension name:', infoError.message);
-                    return;
-                }
+                // Show spinner and disable the form during data fetch
+                $('.loading-spinner').show();
+                $('button[type="submit"]').prop('disabled', true);
 
-                const extensionName = info.extension_name;
+                // Post request to the server to scrape data
+                $.ajax({
+                    url: '/scrape',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ url: url, end_date: endDate }),
+                    success: function(data) {
+                        // Hide spinner
+                        $('.loading-spinner').hide();
+                        $('button[type="submit"]').prop('disabled', false);
 
-                console.log('Extension name fetched:', extensionName);
+                        // Show the results section
+                        $('#results').show();
 
-                // Fetch reviews based on extension name
-                console.log('Fetching reviews from Supabase...');
-                const { data: reviews, error: reviewsError } = await supabase
-                    .from('extension_review')
-                    .select('*')
-                    .eq('extension_name', extensionName);
+                        // Store the received data for pagination
+                        allTweets = data;
+                        currentPage = 0;
 
-                if (reviewsError) {
-                    console.error('Error fetching reviews:', reviewsError.message);
-                    return;
-                }
-
-                console.log('Reviews data fetched:', reviews);
-                renderReviews(reviews);
-
-                // Fetch rating summary
-                const { data: ratingInfo, error: ratingInfoError } = await supabase
-                    .from('extension_info')
-                    .select('overall_rating, total_rating')
-                    .eq('extension_name', extensionName)
-                    .single();
-
-                if (ratingInfoError) {
-                    console.error('Error fetching rating info:', ratingInfoError.message);
-                    return;
-                }
-
-                console.log('Rating info fetched:', ratingInfo);
-                updateRatingSummary(ratingInfo.overall_rating, ratingInfo.total_rating);
-            } catch (err) {
-                console.error('Error in fetchReviews:', err);
-            }
-        }
-
-        function renderReviews(reviews) {
-            const reviewContainer = document.getElementById('reviewCarousel');
-            console.log('Rendering reviews...');
-            reviewContainer.innerHTML = ''; // Clear existing reviews
-            reviews.forEach(review => {
-                console.log('Review:', review);
-                const reviewCard = document.createElement('div');
-                reviewCard.className = 'review-card';
-                const daysAgo = Math.ceil((new Date() - new Date(review.date)) / (1000 * 60 * 60 * 24));
-
-                reviewCard.innerHTML = `
-                    <div class="review-user">
-                        <img src="https://via.placeholder.com/40" alt="${review.name}" class="user-img">
-                        <div>
-                            <div class="user-name">${review.name}</div>
-                            <div class="posted-date">${daysAgo} days ago</div>
-                        </div>
-                    </div>
-                    <div class="star-rating">${'★'.repeat(Math.round(review.rating))}</div>
-                    <div class="review-content">${review.review} <span class="read-more" onclick="showModal('${review.name}', '${daysAgo} days ago', ${review.rating}, '${review.review}')">Read more</span></div>
-                `;
-                reviewContainer.appendChild(reviewCard);
+                        // Fill the table for the first page
+                        displayPage(currentPage);
+                        updatePaginationButtons();
+                        
+                        // Attach data to the download button
+                        $('#downloadCSV').data('tweets', data);
+                    }
+                });
             });
-        }
 
-        function showModal(username, postedDate, starRating, fullReview) {
-            console.log('Showing modal for:', username);
-            const modal = document.getElementById('reviewModal');
-            const modalUser = document.getElementById('modalUser');
-            const modalPostedDate = document.getElementById('modalPostedDate');
-            const modalStarRating = document.getElementById('modalStarRating');
-            const modalReviewContent = document.getElementById('modalReviewContent');
+            $('#filter').change(function() {
+                currentPage = 0; // Reset to the first page when filter changes
+                displayPage(currentPage);
+                updatePaginationButtons();
+            });
 
-            modalUser.textContent = username;
-            modalPostedDate.textContent = postedDate;
-            modalStarRating.textContent = '★'.repeat(Math.round(starRating));
-            modalReviewContent.textContent = fullReview;
-            modal.style.display = 'flex';
-        }
+            $('#prevPage').click(function() {
+                if (currentPage > 0) {
+                    currentPage--;
+                    displayPage(currentPage);
+                    updatePaginationButtons();
+                }
+            });
 
-        function closeModal() {
-            console.log('Closing modal');
-            document.getElementById('reviewModal').style.display = 'none';
-        }
+            $('#nextPage').click(function() {
+                if ((currentPage + 1) * itemsPerPage < allTweets.length) {
+                    currentPage++;
+                    displayPage(currentPage);
+                    updatePaginationButtons();
+                }
+            });
 
-        function updateRatingSummary(overallRating, totalRating) {
-            const ratingSummary = document.getElementById('ratingSummary');
-            ratingSummary.textContent = `${overallRating} ★ (${totalRating})`;
-        }
+            function displayPage(page) {
+                const filterValue = $('#filter').val();
+                const tableBody = $('#resultsTable tbody');
+                tableBody.empty();
+
+                const filteredTweets = allTweets.filter(tweet => {
+                    if (filterValue === 'all') return true;
+                    if (filterValue === 'user_posts') return !tweet.full_text.startsWith('RT');
+                    if (filterValue === 'retweets') return tweet.full_text.startsWith('RT');
+                });
+
+                const startIndex = page * itemsPerPage;
+                const endIndex = Math.min(startIndex + itemsPerPage, filteredTweets.length);
+                
+                filteredTweets.slice(startIndex, endIndex).forEach((tweet, index) => {
+                    const rowIndex = startIndex + index + 1; // Serial number update
+                    const row = `
+                        <tr>
+                            <td>${rowIndex}</td>
+                            <td>${tweet.created_at_ist}</td>
+                            <td><a href="${tweet.Tweet_Url}" target="_blank">${tweet.Tweet_Url}</a></td>
+                            <td>${tweet.full_text}</td>
+                            <td>${tweet.views_count}</td>
+                            <td>${tweet.quote_count}</td>
+                            <td>${tweet.reply_count}</td>
+                            <td>${tweet.retweet_count}</td>
+                            <td>${tweet.favorite_count}</td>
+                        </tr>
+                    `;
+                    tableBody.append(row);
+                });
+            }
+
+            function updatePaginationButtons() {
+                $('#prevPage').prop('disabled', currentPage === 0);
+                $('#nextPage').prop('disabled', (currentPage + 1) * itemsPerPage >= allTweets.filter(tweet => $('#filter').val() === 'all' || ($('#filter').val() === 'user_posts' && !tweet.full_text.startsWith('RT')) || ($('#filter').val() === 'retweets' && tweet.full_text.startsWith('RT'))).length);
+            }
+
+            $('#downloadCSV').click(function() {
+                const tweets = $(this).data('tweets');
+                if (!tweets || tweets.length === 0) return;
+
+                const csvRows = [];
+                const headers = ['Created At (IST)', 'Tweet URL', 'Full Text', 'Views', 'Quote Count', 'Reply Count', 'Retweet Count', 'Favorite Count'];
+                csvRows.push(headers.join(','));
+
+                tweets.forEach(tweet => {
+                    const row = [
+                        tweet.created_at_ist,
+                        tweet.Tweet_Url,
+                        tweet.full_text.replace(/,/g, ''), // Remove commas from full text
+                        tweet.views_count,
+                        tweet.quote_count,
+                        tweet.reply_count,
+                        tweet.retweet_count,
+                        tweet.favorite_count
+                    ];
+                    csvRows.push(row.join(','));
+                });
+
+                const csvString = csvRows.join('\n');
+                const blob = new Blob([csvString], { type: 'text/csv' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'tweets.csv';
+                a.click();
+                URL.revokeObjectURL(url);
+            });
+        });
     </script>
 </body>
 </html>
