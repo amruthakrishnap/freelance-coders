@@ -173,59 +173,45 @@ def index():
 
 
 
+
 @app.route('/scrape', methods=['POST'])
-def scrape():
-    data = request.get_json()  # Get the JSON data from the frontend
+async def scrape():  # Make this function async
+    data = request.get_json()
     url = data['url']
     end_date = data['end_date']
 
-    # Logic to extract tweets
+    # Extract username from URL
     match = re.search(r'https?://x\.com/([^/]+)', url)
     username = match.group(1) if match else None
 
-    # Check if username was successfully extracted
-    if username is None:
-        return jsonify({'error': 'Invalid URL. Username could not be extracted.'}), 400
-
-    params = {
-        'variables': '{"screen_name":"' + username + '"}',
-    }
-
+    # Get user profile
+    params = {'variables': f'{{"screen_name":"{username}"}}'}
     response_profile = requests.get(
         'https://x.com/i/api/graphql/-0XdHI-mrHWBQd8-oLo1aA/ProfileSpotlightsQuery',
         params=params,
-        cookies=cookies,  # Assuming you already have the cookies & headers
+        cookies=cookies,
         headers=headers,
     )
 
-    # Check if response was successful
+    # Error handling for profile response
     if response_profile.status_code != 200:
-        return jsonify({'error': 'Failed to fetch profile data.'}), 500
-
+        return jsonify({"error": "Failed to fetch user profile"}), 400
+    
     data = response_profile.json()
-    # Check for the expected structure in the response
-    try:
-        rest_id = data['data']['user_result_by_screen_name']['result']['rest_id']
-    except KeyError:
-        return jsonify({'error': 'User data not found in response.'}), 404
-
+    rest_id = data['data']['user_result_by_screen_name']['result']['rest_id']
     all_extracted_data = []
     cursor = None
 
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-
     while True:
-        extracted_data, cursor = loop.run_until_complete(fetch_tweets(rest_id, end_date, cursor))
+        extracted_data, cursor = await fetch_tweets(rest_id, end_date, cursor)  # Await here
 
-        if not extracted_data or cursor is None:  # Stop if no data or cursor is None
+        if not extracted_data or cursor is None:
             break
-        save_to_csv(extracted_data)
 
+        save_to_csv(extracted_data)
         all_extracted_data.extend(extracted_data)
 
-    return jsonify(all_extracted_data)  # Send the tweet data back as JSON
-
+    return jsonify(all_extracted_data)
 
 @app.route('/download-csv', methods=['POST'])
 def download_csv():
@@ -246,3 +232,5 @@ def download_csv():
 
 
 
+if __name__ == '__main__':
+    app.run(debug=True)
