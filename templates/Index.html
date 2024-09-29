@@ -8,8 +8,20 @@
     <style>
         /* Custom Styles */
         body {
-            background-color: #e7f3ff; /* Light blue background */
+            background-color: #f0f4f8; /* Soothing light background */
             font-family: 'Arial', sans-serif;
+            height: 100vh; /* Full height */
+        }
+
+        .container {
+            max-width: 100%; /* Full width */
+            margin: 0; /* Remove margin */
+            padding: 20px;
+            background-color: white;
+            box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            height: calc(100vh - 40px); /* Adjust for full height */
+            overflow-y: auto; /* Enable vertical scrolling for the container */
         }
 
         h1 {
@@ -17,15 +29,6 @@
             font-size: 2.5rem;
             font-weight: 700;
             color: #343a40;
-        }
-
-        .container {
-            max-width: 900px;
-            margin: 50px auto;
-            padding: 20px;
-            background-color: white;
-            box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
-            border-radius: 10px;
         }
 
         .form-label {
@@ -54,6 +57,7 @@
 
         .table {
             font-size: 0.9rem;
+            position: relative; /* Required for the fixed header */
         }
 
         .table th, .table td {
@@ -99,6 +103,18 @@
             color: #6c757d; /* Transplant color */
             margin-top: 20px;
         }
+
+        .pagination-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .tweet-count {
+            margin: 10px 0;
+            text-align: center;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -108,6 +124,10 @@
             <div class="mb-3">
                 <label for="url" class="form-label">Twitter URL</label>
                 <input type="text" class="form-control" id="url" placeholder="Enter Twitter profile URL" required>
+            </div>
+            <div class="mb-3">
+                <label for="start_date" class="form-label">Start Date</label>
+                <input type="date" class="form-control" id="start_date" required>
             </div>
             <div class="mb-3">
                 <label for="end_date" class="form-label">End Date</label>
@@ -125,6 +145,7 @@
 
         <div class="mt-5" id="results">
             <h2>Results</h2>
+            <div class="tweet-count">Total Tweets: <span id="tweetCount">0</span></div>
             <!-- Filter Dropdown -->
             <div class="mb-3">
                 <label for="filter" class="form-label">Filter Tweets</label>
@@ -136,7 +157,7 @@
             </div>
             <div class="table-container">
                 <table class="table table-hover table-bordered" id="resultsTable">
-                    <thead class="table-dark">
+                    <thead class="table-dark sticky-top">
                         <tr>
                             <th>#</th>
                             <th>Created At (IST)</th>
@@ -152,11 +173,13 @@
                     <tbody></tbody>
                 </table>
             </div>
-            <div class="pagination-container text-center">
-                <button id="prevPage" class="btn btn-secondary" disabled>Previous</button>
-                <button id="nextPage" class="btn btn-secondary" disabled>Next</button>
-            </div>
             <button id="downloadCSV" class="btn btn-success">Download CSV</button>
+
+            <!-- Pagination -->
+            <div class="pagination-container">
+                <button id="prevPage" class="btn btn-secondary" disabled>Previous</button>
+                <button id="nextPage" class="btn btn-secondary">Next</button>
+            </div>
         </div>
 
         <footer>
@@ -169,89 +192,83 @@
         $(document).ready(function() {
             $('#results').hide();  // Initially hide the results section
 
-            let currentPage = 0;
-            const itemsPerPage = 20;
+            // Set the default end date to the current date
+            const today = new Date().toISOString().split('T')[0];
+            $('#end_date').val(today);
+
             let allTweets = [];
+            let currentPage = 0;
+            const tweetsPerPage = 10;
 
             $('#scrapeForm').submit(function(event) {
                 event.preventDefault();
                 const url = $('#url').val();
+                const startDate = $('#start_date').val();
                 const endDate = $('#end_date').val();
 
                 // Show spinner and disable the form during data fetch
                 $('.loading-spinner').show();
                 $('button[type="submit"]').prop('disabled', true);
+                $('#results').hide(); // Hide results until data is fully loaded
 
                 // Post request to the server to scrape data
                 $.ajax({
                     url: '/scrape',
                     type: 'POST',
                     contentType: 'application/json',
-                    data: JSON.stringify({ url: url, end_date: endDate }),
+                    data: JSON.stringify({ url: url, start_date: startDate, end_date: endDate }),
                     success: function(data) {
                         // Hide spinner
                         $('.loading-spinner').hide();
                         $('button[type="submit"]').prop('disabled', false);
 
-                        // Show the results section
-                        $('#results').show();
-
-                        // Store the received data for pagination
+                        // Store the received data
                         allTweets = data;
-                        currentPage = 0;
 
-                        // Fill the table for the first page
-                        displayPage(currentPage);
-                        updatePaginationButtons();
-                        
-                        // Attach data to the download button
-                        $('#downloadCSV').data('tweets', data);
+                        // Fill the table with all tweets
+                        displayTweets(allTweets);
+                    },
+                    error: function(xhr, status, error) {
+                        $('.loading-spinner').hide();
+                        $('button[type="submit"]').prop('disabled', false);
+                        alert('An error occurred while fetching data: ' + error);
                     }
                 });
             });
 
             $('#filter').change(function() {
-                currentPage = 0; // Reset to the first page when filter changes
-                displayPage(currentPage);
-                updatePaginationButtons();
+                currentPage = 0; // Reset pagination
+                displayTweets(allTweets); // Re-display tweets based on filter
             });
 
-            $('#prevPage').click(function() {
-                if (currentPage > 0) {
-                    currentPage--;
-                    displayPage(currentPage);
-                    updatePaginationButtons();
-                }
-            });
-
-            $('#nextPage').click(function() {
-                if ((currentPage + 1) * itemsPerPage < allTweets.length) {
-                    currentPage++;
-                    displayPage(currentPage);
-                    updatePaginationButtons();
-                }
-            });
-
-            function displayPage(page) {
+            function getFilteredTweets() {
                 const filterValue = $('#filter').val();
-                const tableBody = $('#resultsTable tbody');
-                tableBody.empty();
-
-                const filteredTweets = allTweets.filter(tweet => {
+                return allTweets.filter(tweet => {
                     if (filterValue === 'all') return true;
                     if (filterValue === 'user_posts') return !tweet.full_text.startsWith('RT');
                     if (filterValue === 'retweets') return tweet.full_text.startsWith('RT');
                 });
+            }
 
-                const startIndex = page * itemsPerPage;
-                const endIndex = Math.min(startIndex + itemsPerPage, filteredTweets.length);
-                
-                filteredTweets.slice(startIndex, endIndex).forEach((tweet, index) => {
-                    const rowIndex = startIndex + index + 1; // Serial number update
+            function displayTweets(tweets) {
+                const filteredTweets = getFilteredTweets();
+                const totalTweets = filteredTweets.length;
+                $('#tweetCount').text(totalTweets); // Update tweet count display
+
+                // Pagination logic
+                const start = currentPage * tweetsPerPage;
+                const end = start + tweetsPerPage;
+                const paginatedTweets = filteredTweets.slice(start, end);
+
+                const tableBody = $('#resultsTable tbody');
+                tableBody.empty();
+
+                paginatedTweets.forEach((tweet, index) => {
+                    const rowIndex = start + index + 1; // Serial number update
                     const row = `
                         <tr>
                             <td>${rowIndex}</td>
-                            <td>${tweet.created_at_ist}</td>
+                            <td>${tweet.quoted_created_at_ist}</td>
                             <td><a href="${tweet.Tweet_Url}" target="_blank">${tweet.Tweet_Url}</a></td>
                             <td>${tweet.full_text}</td>
                             <td>${tweet.views_count}</td>
@@ -263,36 +280,49 @@
                     `;
                     tableBody.append(row);
                 });
-            }
 
-            function updatePaginationButtons() {
+                // Handle pagination buttons
                 $('#prevPage').prop('disabled', currentPage === 0);
-                $('#nextPage').prop('disabled', (currentPage + 1) * itemsPerPage >= allTweets.filter(tweet => $('#filter').val() === 'all' || ($('#filter').val() === 'user_posts' && !tweet.full_text.startsWith('RT')) || ($('#filter').val() === 'retweets' && tweet.full_text.startsWith('RT'))).length);
+                $('#nextPage').prop('disabled', end >= totalTweets);
+
+                // Show results only after all tweets are processed
+                $('#results').show();
             }
 
+            $('#prevPage').click(function() {
+                if (currentPage > 0) {
+                    currentPage--;
+                    displayTweets(allTweets); // Re-display tweets on page change
+                }
+            });
+
+            $('#nextPage').click(function() {
+                const filteredTweets = getFilteredTweets();
+                if (currentPage < Math.ceil(filteredTweets.length / tweetsPerPage) - 1) {
+                    currentPage++;
+                    displayTweets(allTweets); // Re-display tweets on page change
+                }
+            });
+
+            // CSV Download
             $('#downloadCSV').click(function() {
-                const tweets = $(this).data('tweets');
-                if (!tweets || tweets.length === 0) return;
-
-                const csvRows = [];
-                const headers = ['Created At (IST)', 'Tweet URL', 'Full Text', 'Views', 'Quote Count', 'Reply Count', 'Retweet Count', 'Favorite Count'];
-                csvRows.push(headers.join(','));
-
-                tweets.forEach(tweet => {
+                const filteredTweets = getFilteredTweets();
+                let csvString = 'Serial,Created At (IST),Tweet URL,Full Text,Views,Quote Count,Reply Count,Retweet Count,Favorite Count\n';
+                filteredTweets.forEach((tweet, index) => {
                     const row = [
-                        tweet.created_at_ist,
+                        index + 1,
+                        tweet.quoted_created_at_ist,
                         tweet.Tweet_Url,
-                        tweet.full_text.replace(/,/g, ''), // Remove commas from full text
+                        tweet.full_text,
                         tweet.views_count,
                         tweet.quote_count,
                         tweet.reply_count,
                         tweet.retweet_count,
                         tweet.favorite_count
-                    ];
-                    csvRows.push(row.join(','));
+                    ].join(',');
+                    csvString += row + '\n';
                 });
 
-                const csvString = csvRows.join('\n');
                 const blob = new Blob([csvString], { type: 'text/csv' });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
