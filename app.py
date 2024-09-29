@@ -77,14 +77,7 @@ def get_bottom_cursor(data):
     return bottom_cursor_value
 
 
-def save_to_csv(data_list, filename='tweets_data.csv'):
-    keys = data_list[0].keys()
-    with open(filename, 'a', newline='', encoding='utf-8') as output_file:  # Change to 'a' for append
-        dict_writer = csv.DictWriter(output_file, fieldnames=keys)
-        if output_file.tell() == 0:  # Write header only if file is empty
-            dict_writer.writeheader()
-        dict_writer.writerows(data_list)
-    print(f"Data appended to {filename}")
+
 
 from datetime import datetime
 import pytz
@@ -235,7 +228,6 @@ def scrape():
         if not extracted_data or cursor is None:  # Stop if no data or cursor is None
             break
         
-        save_to_csv(extracted_data)  # Save the extracted data
         all_extracted_data.extend(extracted_data)  # Collect all extracted data
 
         # Optional: Sleep to avoid hitting rate limits
